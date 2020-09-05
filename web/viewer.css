@@ -1434,9 +1434,11 @@ html[dir="rtl"] #layersView .treesItem > a > label {
 
 .treeItemToggler {
   position: relative;
-  height: 0;
-  width: 0;
+  height: 20px;
+  width: 20px;
   color: rgba(255, 255, 255, 0.5);
+  right: 20px;
+  margin-right: -20px;
 }
 .treeItemToggler::before {
   content: var(--treeitem-expanded-icon);

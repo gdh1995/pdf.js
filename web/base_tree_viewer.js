@@ -65,6 +65,7 @@ class BaseTreeViewer {
   _addToggleButton(div, hidden = false) {
     const toggler = document.createElement("div");
     toggler.className = "treeItemToggler";
+    toggler.setAttribute("role", "button");
     if (hidden) {
       toggler.classList.add("treeItemsHidden");
     }
