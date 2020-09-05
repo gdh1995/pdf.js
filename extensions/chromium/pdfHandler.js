@@ -122,7 +122,7 @@ chrome.webRequest.onHeadersReceived.addListener(
       // Don't intercept POST requests until http://crbug.com/104058 is fixed.
       return undefined;
     }
-    if (!isPdfFile(details)) {
+    if (!isPdfFile(details) || details.statusCode >= 400) {
       return undefined;
     }
     if (isPdfDownloadable(details)) {
