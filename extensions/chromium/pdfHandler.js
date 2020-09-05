@@ -150,6 +150,8 @@ chrome.webRequest.onBeforeRequest.addListener(
       return undefined;
     }
 
+    saveReferer(details);
+
     var viewerUrl = getViewerURL(details.url);
 
     return { redirectUrl: viewerUrl };
@@ -185,6 +187,7 @@ chrome.extension.isAllowedFileSchemeAccess(function (isAllowedAccess) {
   chrome.webNavigation.onBeforeNavigate.addListener(
     function (details) {
       if (details.frameId === 0 && !isPdfDownloadable(details)) {
+        saveReferer({ tabId: details.tabId, frameId: details.frameId, requestId: "__fake_id" });
         chrome.tabs.update(details.tabId, {
           url: getViewerURL(details.url),
         });
