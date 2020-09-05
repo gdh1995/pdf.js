@@ -76,7 +76,7 @@ var extraInfoSpecWithHeaders; // = ['requestHeaders', 'extraHeaders']
 /**
  * @param {object} details - onHeadersReceived event data.
  */
-function saveReferer(details) {
+function saveReferer(details, maybeInEmbedMode) {
   var referer =
     g_requestHeaders[details.requestId] &&
     getHeaderFromHeaders(g_requestHeaders[details.requestId], "referer");
@@ -85,6 +85,7 @@ function saveReferer(details) {
     g_referrers[details.tabId] = {};
   }
   g_referrers[details.tabId][details.frameId] = referer;
+  g_referrers[details.tabId][-1] = !!maybeInEmbedMode;
 }
 
 chrome.tabs.onRemoved.addListener(function (tabId) {
@@ -108,6 +109,10 @@ chrome.runtime.onConnect.addListener(function onReceivePort(port) {
 
   // If the PDF is viewed for the first time, then the referer will be set here.
   var referer = (g_referrers[tabId] && g_referrers[tabId][frameId]) || "";
+  if (!referer && g_referrers[tabId] && g_referrers[tabId][-1]) {
+    referer = g_referrers[tabId][0] || "";
+  }
+
   port.onMessage.addListener(function (data) {
     // If the viewer was opened directly (without opening a PDF URL first), then
     // the background script does not know about g_referrers, but the viewer may

@@ -34,6 +34,40 @@ function onAnimationStart(event) {
   }
 }
 
+function testEmbedMode() {
+  if ((document.contentType + "").toLowerCase() !== "application/pdf") {
+    return;
+  }
+  var body = document.body;
+  var elem = body && body.firstElementChild;
+  if (!elem || elem.__I_saw_this_element) {
+    return;
+  }
+
+  if (elem.localName === "embed" && (elem.type + "").toLowerCase() === "application/pdf") {
+    elem.__I_saw_this_element = true;
+    try {
+      var pdf_url = location.href, split = pdf_url.indexOf("#");
+      pdf_url = pdf_url + (split < 0 ? "#" : split < pdf_url.length ? "&" : "") + "singleembed=true";
+      elem = createFullSizeIframe();
+      elem.src = pdf_url;
+      elem.style.position = "absolute";
+      elem.__I_saw_this_element = true;
+      elem.__inserted_by_pdfjs = true;
+      body.textContent = "";
+      body.appendChild(elem);
+      onSingleEmbedMode(elem);
+      return true;
+    } catch (e) {}
+  }
+}
+
+function onSingleEmbedMode(elem) {
+  setTimeout(function () {
+    elem.focus();
+  }, 17);
+}
+
 // Called for every <object> or <embed> element in the page.
 // This may change the type, src/data attributes and/or the child nodes of the
 // element. This function only affects elements for the first call. Subsequent

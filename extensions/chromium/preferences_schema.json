@@ -188,6 +188,12 @@
         2
       ],
       "default": -1
+    },
+    "preferEmbedMode": {
+      "title": "Prefer keeping URLs in the address bar unchanged",
+      "description": "Prefer keeping URLs in the address bar unchanged",
+      "type": "boolean",
+      "default": true
     }
   }
 }

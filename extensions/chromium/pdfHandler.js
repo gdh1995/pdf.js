@@ -19,6 +19,8 @@ limitations under the License.
 
 var VIEWER_URL = chrome.extension.getURL("content/web/viewer.html");
 
+var tabsMaybeInEmbedMode = {};
+
 function getViewerURL(pdf_url) {
   return VIEWER_URL + "?file=" + encodeURIComponent(pdf_url);
 }
@@ -116,6 +118,33 @@ function getHeadersWithContentDispositionAttachment(details) {
   return undefined;
 }
 
+function onNavigationCommited(details) {
+  if (details.frameId !== 0 || !(details.tabId in tabsMaybeInEmbedMode)) {
+    return;
+  }
+
+  var tabId = details.tabId;
+  var pdf_url = tabsMaybeInEmbedMode[tabId];
+  delete tabsMaybeInEmbedMode[tabId];
+  if (!pdf_url) {
+    return;
+  }
+
+  chrome.tabs.executeScript(tabId, {
+    code: 'typeof testEmbedMode === "function" && testEmbedMode()',
+    runAt: "document_end"
+  }, function (res) {
+    if (!(res && res.length > 0 && res[0] === true)) {
+      chrome.tabs.update(tabId, {
+        url: getViewerURL(pdf_url),
+      }, function () {
+        return chrome.runtime.lastError;
+      });
+    }
+    return chrome.runtime.lastError;
+  });
+}
+
 chrome.webRequest.onHeadersReceived.addListener(
   function (details) {
     if (details.method !== "GET") {
@@ -128,6 +157,12 @@ chrome.webRequest.onHeadersReceived.addListener(
     if (isPdfDownloadable(details)) {
       // Force download by ensuring that Content-Disposition: attachment is set
       return getHeadersWithContentDispositionAttachment(details);
+    }
+
+    if (tabsMaybeInEmbedMode && details.frameId === 0) {
+      saveReferer(details, true);
+      tabsMaybeInEmbedMode[details.tabId] = details.url;
+      return undefined;
     }
 
     var viewerUrl = getViewerURL(details.url);
@@ -151,6 +186,11 @@ chrome.webRequest.onBeforeRequest.addListener(
     }
 
     saveReferer(details);
+
+    if (tabsMaybeInEmbedMode && details.frameId === 0) {
+      tabsMaybeInEmbedMode[details.tabId] = details.url;
+      return undefined;
+    }
 
     var viewerUrl = getViewerURL(details.url);
 
@@ -188,6 +228,10 @@ chrome.extension.isAllowedFileSchemeAccess(function (isAllowedAccess) {
     function (details) {
       if (details.frameId === 0 && !isPdfDownloadable(details)) {
         saveReferer({ tabId: details.tabId, frameId: details.frameId, requestId: "__fake_id" });
+        if (tabsMaybeInEmbedMode) {
+          tabsMaybeInEmbedMode[details.tabId] = details.url;
+          return;
+        }
         chrome.tabs.update(details.tabId, {
           url: getViewerURL(details.url),
         });
@@ -263,3 +307,28 @@ chrome.storage.local.remove([
   "webRequestRedirectUrl",
   "extensionSupportsFTP",
 ]);
+
+var storageAreaName = chrome.storage.sync ? "sync" : "local";
+chrome.storage.onChanged.addListener(function (changes, areaName) {
+  if (areaName !== storageAreaName) { return; }
+  var newPreferEmbedMode = changes.preferEmbedMode;
+  if (newPreferEmbedMode) {
+    setPreferEmbedMode(newPreferEmbedMode.newValue != null ? newPreferEmbedMode.newValue : true);
+  }
+});
+
+chrome.storage[storageAreaName].get("preferEmbedMode", function (data) {
+  var curMode = data && data.preferEmbedMode;
+  setPreferEmbedMode(curMode != null ? curMode : true);
+  return chrome.runtime.lastError;
+});
+
+function setPreferEmbedMode(newMode) {
+  tabsMaybeInEmbedMode = newMode ? {} : null;
+
+  var onCommitted = chrome.webNavigation.onCommitted;
+  onCommitted.removeListener(onNavigationCommited);
+  if (newMode) {
+    onCommitted.addListener(onNavigationCommited);
+  }
+}
