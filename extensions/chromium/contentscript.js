@@ -16,10 +16,10 @@ limitations under the License.
 
 "use strict";
 
-var VIEWER_URL = chrome.extension.getURL("content/web/viewer.html");
-
-function getViewerURL(pdf_url) {
-  return VIEWER_URL + "?file=" + encodeURIComponent(pdf_url);
+function getViewerURL() {
+  var VIEWER_URL = chrome.extension.getURL("content/web/viewer.html");
+  getViewerURL = function () { return VIEWER_URL; }
+  return VIEWER_URL;
 }
 
 if (CSS.supports("animation", "0s")) {
@@ -119,7 +119,7 @@ function watchObjectOrEmbed(elem) {
 
 // Display the PDF Viewer in an <embed>.
 function updateEmbedElement(elem) {
-  if (elem.type === "text/html" && elem.src.lastIndexOf(VIEWER_URL, 0) === 0) {
+  if (elem.type === "text/html" && elem.src.lastIndexOf(getViewerURL(), 0) === 0) {
     // The viewer is already shown.
     return;
   }
@@ -219,5 +219,5 @@ function getEmbeddedViewerURL(path) {
   a.href = document.baseURI;
   a.href = path;
   path = a.href;
-  return getViewerURL(path) + fragment;
+  return getViewerURL() + "?file=" + encodeURIComponent(path) + fragment;
 }
