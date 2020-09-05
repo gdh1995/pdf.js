@@ -58,6 +58,8 @@
   "incognito": "split",
   "web_accessible_resources": [
     "content/web/viewer.html",
+    "icon16.png",
+    "icon48.png",
     "http:/*",
     "https:/*",
     "ftp:/*",

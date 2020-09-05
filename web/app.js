@@ -245,6 +245,9 @@ const PDFViewerApplication = {
 
   // Called once when the document is loaded.
   async initialize(appConfig) {
+    if (this.initialBookmark && /(^|&)singleembed=true(&|$)/.test(this.initialBookmark)) {
+      this.isViewerEmbedded = 0;
+    }
     this.preferences = this.externalServices.createPreferences();
     this.appConfig = appConfig;
 
@@ -703,6 +706,13 @@ const PDFViewerApplication = {
       return;
     }
     document.title = title;
+    if (this.isViewerEmbedded === 0) {
+      var domain = "*";
+      if (/^https?:\/\//.test(this.url)) {
+        domain = this.url.split("/", 3).join("/");
+      }
+      top.postMessage({ title }, domain);
+    }
   },
 
   /**

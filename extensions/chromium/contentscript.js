@@ -51,6 +51,7 @@ function testEmbedMode() {
       pdf_url = pdf_url + (split < 0 ? "#" : split < pdf_url.length ? "&" : "") + "singleembed=true";
       elem = createFullSizeIframe();
       elem.src = pdf_url;
+      elem.setAttribute("allowfullscreen", "allowfullscreen");
       elem.style.position = "absolute";
       elem.__I_saw_this_element = true;
       elem.__inserted_by_pdfjs = true;
@@ -63,6 +64,21 @@ function testEmbedMode() {
 }
 
 function onSingleEmbedMode(elem) {
+  var icons = [ ["16x16", "icon16.png"], ["48x48", "icon48.png"] ];
+  var getURL = chrome.runtime.getURL;
+  for (var i = 0; i < icons.length; i++) {
+    var link = document.createElement("link");
+    link.rel = "icon";
+    link.sizes = icons[i][0];
+    link.href = getURL(icons[i][1]);
+    (document.head || document.body).appendChild(link);
+  }
+  var origin = getURL("").replace(/\/$/, "");
+  window.onmessage = function (event) {
+    if (event.origin === origin && event.data.title) {
+      document.title = event.data.title;
+    }
+  };
   setTimeout(function () {
     elem.focus();
   }, 17);
