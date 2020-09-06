@@ -1,4 +1,5 @@
 {
+  "update_url": "https://clients2.google.com/service/update2/crx",
   "manifest_version": 2,
   "name": "PDF Viewer for Vimium C",
   "version": "PDFJSSCRIPT_VERSION",
@@ -8,6 +9,7 @@
     "48": "icon48.png",
     "16": "icon16.png"
   },
+  "minimum_chrome_version": "41",
   "permissions": [
     "fileBrowserHandler",
     "webRequest", "webRequestBlocking",
