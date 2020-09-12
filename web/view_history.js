@@ -62,7 +62,9 @@ class ViewHistory {
       sessionStorage.setItem("pdfjs.history", databaseStr);
       return;
     }
-    localStorage.setItem("pdfjs.history", databaseStr);
+    if (localStorage.length != null) {
+      localStorage.setItem("pdfjs.history", databaseStr);
+    }
   }
 
   async _readFromStorage() {

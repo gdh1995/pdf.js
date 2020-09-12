@@ -46,13 +46,13 @@
     }
   }
 
-  var injectorURL = localStorage.targetExtensionInjector;
+  var doInject = function (injectorURL) {
   if (injectorURL === "nul" || injectorURL === "/dev/null") { return; }
   if (!injectorURL) {
     injectorURL = /\sEdg\//.test(navigator.appVersion) ? "aibcglbfblnogfjhbcmmpobjhnomhcdo"
         : "hfjbmagddngcpeloejdejnfgbamkjaeg";
     injectorURL = "chrome-extension://" + injectorURL + "/lib/injector.js";
-    localStorage.targetExtensionInjector = injectorURL;
+    localStorage.setItem("targetExtensionInjector", injectorURL);
   }
   var script = document.createElement("script");
   script.src = injectorURL;
@@ -66,4 +66,11 @@
     return !!injector
   };
   document.head.appendChild(script);
+  };
+  var injectorPromise = localStorage.getItem("targetExtensionInjector");
+  if (injectorPromise instanceof Promise) {
+    injectorPromise.then(doInject);
+  } else {
+    doInject(injectorPromise);
+  }
 })()

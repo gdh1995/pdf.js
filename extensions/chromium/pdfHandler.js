@@ -298,6 +298,12 @@ chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
       });
     }
   }
+  else if (message && message.action === "getStorageItem") {
+    sendResponse((message.data.persistent ? localStorage : sessionStorage).getItem(message.data.key));
+  }
+  else if (message && message.action === "setStorageItem") {
+    (message.data.persistent ? localStorage : sessionStorage).setItem(message.data.key, message.data.value);
+  }
   return undefined;
 });
 

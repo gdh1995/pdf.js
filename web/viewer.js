@@ -50,6 +50,31 @@ if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("GENERIC")) {
 }
 if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("CHROME")) {
   require("./chromecom.js");
+  localStorage || (function () {
+    const { ChromeCom } = require("./chromecom.js");
+    const BG = chrome.extension.getBackgroundPage();
+    let newLocalStorage = BG && BG.localStorage, newSessionStorage = BG && BG.sessionStorage;
+    if (!newLocalStorage) {
+      const getItem = function (key) {
+        return new Promise(resolve => {
+          ChromeCom.request("getStorageItem", { persistent: this.persistent, key }, resolve);
+        });
+      }
+      const setItem = function (key, value) {
+        ChromeCom.request("setStorageItem", { persistent: this.persistent, key, value });
+      }
+      newLocalStorage = { getItem, setItem, persistent: true };
+      newSessionStorage = { getItem, setItem, persistent: false };
+    }
+    try {
+      define("localStorage", newLocalStorage);
+      newSessionStorage && define("sessionStorage", newSessionStorage);
+    } catch (e) {}
+    function define(name, value) {
+      Object.defineProperty(window, name, { get: () => value });
+    }
+  })();
+  require("./vimium-c-injector.js");
 }
 if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("CHROME || GENERIC")) {
   require("./pdf_print_service.js");
