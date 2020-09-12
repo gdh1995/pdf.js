@@ -131,8 +131,8 @@ function onNavigationCommited(details) {
   }
 
   chrome.tabs.executeScript(tabId, {
-    code: 'typeof testEmbedMode === "function" && testEmbedMode()',
-    runAt: "document_end"
+    code: 'var isSingleEmbed = 1; typeof testEmbedMode === "function" && testEmbedMode()',
+    runAt: "document_start"
   }, function (res) {
     if (!(res && res.length > 0 && res[0] === true)) {
       chrome.tabs.update(tabId, {

@@ -16,6 +16,8 @@ limitations under the License.
 
 "use strict";
 
+var isSingleEmbed;
+
 function getViewerURL() {
   var VIEWER_URL = chrome.extension.getURL("content/web/viewer.html");
   getViewerURL = function () { return VIEWER_URL; }
@@ -97,6 +99,9 @@ function watchObjectOrEmbed(elem) {
   var srcAttribute = "src" in elem ? "src" : "data";
   var path = elem[srcAttribute];
   if (!mimeType && !/\.pdf($|[?#])/i.test(path)) {
+    return;
+  }
+  if (isSingleEmbed && testEmbedMode()) {
     return;
   }
 
