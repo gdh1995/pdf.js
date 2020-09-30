@@ -50,7 +50,10 @@ if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("GENERIC")) {
 }
 if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("CHROME")) {
   require("./chromecom.js");
-  localStorage || (function () {
+  (function () {
+    try {
+      if (window.localStorage) { return; }
+    } catch (e) {}
     const { ChromeCom } = require("./chromecom.js");
     const BG = chrome.extension.getBackgroundPage();
     let newLocalStorage = BG && BG.localStorage, newSessionStorage = BG && BG.sessionStorage;
@@ -67,10 +70,10 @@ if (typeof PDFJSDev !== "undefined" && PDFJSDev.test("CHROME")) {
       newSessionStorage = { getItem, setItem, persistent: false };
     }
     try {
-      define("localStorage", newLocalStorage);
-      newSessionStorage && define("sessionStorage", newSessionStorage);
+      override("localStorage", newLocalStorage);
+      newSessionStorage && override("sessionStorage", newSessionStorage);
     } catch (e) {}
-    function define(name, value) {
+    function override(name, value) {
       Object.defineProperty(window, name, { get: () => value });
     }
   })();
